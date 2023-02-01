@@ -132,10 +132,7 @@ void Board::ShowBoard() const
 
 void Board::SetAlien()
 {
-    Board board;
-    int RowY = board.getRow() + 1;
-    int ColX = board.getColumn() + 3;
-    map_[RowY][ColX] = 'A';
+    map_[BoardY_ / 2][BoardX_ / 2] = 'A';
 }
 
 void PlayConfirmation()
