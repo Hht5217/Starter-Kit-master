@@ -18,6 +18,11 @@
 using namespace std;
 using namespace pf;
 
+// Declare functions here
+void MenuDisplay();
+void MapSettings();
+void PlayConfirmation();
+
 class Board
 {
 private:
@@ -25,9 +30,15 @@ private:
     int BoardX_, BoardY_;
 
 public:
-    Board(int BoardX = 7, int BoardY = 7);
+    Board()
+    {
+        int BoardX = 7;
+        int BoardY = 7;
+        init(BoardX, BoardY);
+    }
     void init(int BoardX, int BoardY);
     void ShowBoard() const;
+    void SetAlien();
     void mapUpdate(int BoardX, int BoardY);
     int getColumn() const;
     int getRow() const;
@@ -40,8 +51,8 @@ void Lines()
 
 void Board::mapUpdate(int NewX, int NewY)
 {
-    BoardX_ = NewX;
-    BoardY_ = NewY;
+    NewX = BoardX_;
+    NewY = BoardY_;
 }
 
 int Board::getColumn() const
@@ -51,11 +62,6 @@ int Board::getColumn() const
 int Board::getRow() const
 {
     return BoardY_;
-}
-
-Board::Board(int BoardX, int BoardY)
-{
-    init(BoardX, BoardY);
 }
 
 void Board::init(int BoardX, int BoardY)
@@ -83,30 +89,25 @@ void Board::ShowBoard() const
 {
     for (int i = 0; i < BoardY_; ++i)
     {
-        // display upper border of the row
         cout << "  ";
         for (int j = 0; j < BoardX_; ++j)
         {
             cout << "+-";
         }
         cout << "+" << endl;
-        // display row number
         cout << setw(2) << (BoardY_ - i);
-        // display cell content and border of each column
         for (int j = 0; j < BoardX_; ++j)
         {
             cout << "|" << map_[i][j];
         }
         cout << "|" << endl;
     }
-    // display lower border of the last row
     cout << "  ";
     for (int j = 0; j < BoardX_; ++j)
     {
         cout << "+-";
     }
     cout << "+" << endl;
-    // display column number
     cout << "  ";
     for (int j = 0; j < BoardX_; ++j)
     {
@@ -123,14 +124,19 @@ void Board::ShowBoard() const
     {
         cout << " " << (j + 1) % 10;
     }
-    cout << endl
-         << endl;
+    cout << endl;
+    cout << "(Return to menu)";
+    Pause();
+    MenuDisplay();
 }
 
-// Declare functions here
-void MenuDisplay();
-void MapSettings();
-void PlayConfirmation();
+void Board::SetAlien()
+{
+    Board board;
+    int RowY = board.getRow() + 1;
+    int ColX = board.getColumn() + 3;
+    map_[RowY][ColX] = 'A';
+}
 
 void PlayConfirmation()
 {
@@ -143,101 +149,128 @@ void PlayConfirmation()
          << "\n"
          << "3. Back" << endl;
     char playmenu;
-    cout << "Please select your action: ";
-    cin >> playmenu;
-    if (playmenu == '1' || playmenu == '2' || playmenu == '3')
+    while (true)
     {
-        if (playmenu == '1')
+        cout << "Please input a command(number): ";
+        cin >> playmenu;
+        if (playmenu == '1' || playmenu == '2' || playmenu == '3')
         {
-            Board play;
-            ClearScreen();
-            play.ShowBoard();
+            if (playmenu == '1')
+            {
+                Board play;
+                ClearScreen();
+                play.SetAlien();
+                play.ShowBoard();
+                break;
+            }
+            else if (playmenu == '2')
+            {
+                ClearScreen();
+                MapSettings();
+                break;
+            }
+            else if (playmenu == '3')
+            {
+                MenuDisplay();
+                break;
+            }
         }
-        else if (playmenu == '2')
+        else
         {
-            ClearScreen();
-            MapSettings();
-        }
-        else if (playmenu == '3')
-        {
-            ClearScreen();
-            MenuDisplay();
+            cout << "Command not found, please try again." << endl;
         }
     }
 }
 
-Board XY;
 int zomnum = 1;
-int numRows = XY.getRow();
-int numColumns = XY.getColumn();
 
 void MapSettings()
 {
     Board mapset;
+    int numRows = mapset.getRow();
+    int numColumns = mapset.getColumn();
     Lines();
-    cout << "Map Settings!" << endl;
+    cout << "Change the game Settings" << endl;
     Lines();
     cout << "1. Map size: "
          << numRows << "x" << numColumns
          << "\n"
-         << "2. Number of Zombie: " << zomnum
+         << "2. Number of Zombies: " << zomnum
          << "\n"
          << "3. Back" << endl;
 
     char menu2;
-    cout << "Please select your action: ";
-    cin >> menu2;
-    if (menu2 == '1' || menu2 == '2' || menu2 == '3')
+    while (true)
     {
-        if (menu2 == '1')
+        cout << "Please input a command(number): ";
+        cin >> menu2;
+        if (menu2 == '1' || menu2 == '2' || menu2 == '3')
         {
-
-            cout << "Board Settings\n";
-            Lines();
-            cout << "Enter rows => ";
-            cin >> numRows;
-            cout << "Enter columns => ";
-            cin >> numColumns;
-            // cout << "Zombie Settings";
-            // Lines();
-            mapset.mapUpdate(numColumns, numRows);
-            ClearScreen();
-            MapSettings();
-        }
-        else if (menu2 == '2')
-        {
-            int numofzom;
-            cout << "Enter number of Zombies:";
-            cin >> numofzom;
-            char confirmation;
-            cout << "Are you sure? y/n: ";
-            cin >> confirmation;
-            if (confirmation == 'y')
-            {
-                zomnum = numofzom;
-                ClearScreen();
-                MapSettings();
-            }
-            else if (confirmation == 'n')
+            if (menu2 == '1')
             {
                 ClearScreen();
+                Lines();
+                cout << "Changing map size" << endl;
+                Lines();
+                while (true)
+                {
+                    cout << "Enter rows => ";
+                    cin >> numRows;
+                    cout << "Enter columns => ";
+                    cin >> numColumns;
+                    if (numRows % 2 == 0 || numColumns % 2 == 0)
+                    {
+                        cout << "Rows / Columns entered is not an odd number, please try again." << endl;
+                        Lines();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                mapset.mapUpdate(numColumns, numRows);
+                ClearScreen();
                 MapSettings();
+                break;
+            }
+            else if (menu2 == '2')
+            {
+                int numofzom;
+                cout << "Enter number of Zombies:";
+                cin >> numofzom;
+                char confirmation;
+                cout << "Are you sure? y/n: ";
+                cin >> confirmation;
+                if (confirmation == 'y')
+                {
+                    zomnum = numofzom;
+                    ClearScreen();
+                    MapSettings();
+                    break;
+                }
+                else if (confirmation == 'n')
+                {
+                    ClearScreen();
+                    MapSettings();
+                    break;
+                }
+            }
+            else if (menu2 == '3')
+            {
+                MenuDisplay();
+                break;
             }
         }
-        else if (menu2 == '3')
+        else
         {
-            ClearScreen();
-            MenuDisplay();
+            cout << "Command not found, please try again." << endl;
         }
-    }
-    else
-    {
-        cout << "not exist";
     }
 }
 
 void MenuDisplay()
 {
+    ClearScreen();
     Lines();
     cout << "Welcome to Alien Path Simplified!" << endl;
     Lines();
@@ -249,13 +282,12 @@ void MenuDisplay()
     char menu;
     while (true)
     {
-        cout << "Please select your action: ";
+        cout << "Please input a command(number): ";
         cin >> menu;
         if (menu == '1' || menu == '2' || menu == '3')
         {
             if (menu == '1')
             {
-                cout << "(exist)";
                 ClearScreen();
                 PlayConfirmation();
                 break;
@@ -272,19 +304,17 @@ void MenuDisplay()
             {
                 cout << "Good Bye!" << endl;
                 break;
-                // cout << "(clearscreen, Go to exit)" << endl;
             }
         }
         else
         {
-            cout << "Input does not exist,please try again!" << endl;
+            cout << "Command not found, please try again." << endl;
         }
     }
 }
 
 int main()
 {
-    ClearScreen();
     MenuDisplay();
 
     return 0;

@@ -1,26 +1,22 @@
 # Alien vs. Zombie
 
-Please introduce the game here.
-
-You may add one signature screenshot of your program here or above the title. Check out [this tutorial](https://www.digitalocean.com/community/tutorials/markdown-markdown-images) to learn how to do it.
-
-Please provide the YouTube link to your [Video Demo](https://youtube.com).
+Introduction / description of the game / program (To be changed).
+- Images/screenshots of program
+- Youtube link of program demo
 
 ## Compilation Instructions
 
-Provide instructions on how to compile your program, especially when it is non-trivial.
+To compile, type the line below in command line / terminal:
+<!-- g++ pf\*.cpp main.cpp -->
+(Ensure you are in the right directory/folder.)
 
-For example:
+## User Manual(Change)
 
-```
-g++ main.cpp folder1\code.cpp folder2\code.cpp ......
-```
+Users will need to manually input command to navigate through the program.
 
-## User Manual
+The program will show options that are listed with numbers beside them. To navigate to the options / pages, type in the single number beside the option. You may be asked to reinput if the number entered does not exist / not yet implemented.
 
-Please provide the user manual on how to use your program.
-
-Please DO NOT change the Progress Log below. Leave it as it is.
+For user input confirmation 'y/n', 'y' refers to "Yes" and 'n' refers to "No".
 
 ## Progress Log
 
@@ -29,10 +25,5 @@ Please DO NOT change the Progress Log below. Leave it as it is.
 
 ## Contributors
 
-Please replace the following with your group members' names. 
-
-- Tony Stark
-- Steve Rogers
-- Dr. Strange
-
-
+- Tan Hong Han
+- Anadani Muaaz

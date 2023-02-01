@@ -5,47 +5,39 @@
 Please provide the YouTube link to your [Video Demo](https://youtube.com).
 
 ## Minimum Requirements
+- Creating a functional gameboard with characters and objects present
+- Allow users to modify game settings
 
 ### Completed
 
-List all the features completed.
-
-1. Cool Feature #1
-2. Cool Feature #2
-3. *add more*
+1. Gameboard template
+2. View game settings
 
 ### To Do
 
-List all the features not yet done. Remove this section if there is no incomplete requirements.
-
-1. Cool Feature #1
-2. *add more*
+1. Add more characters and objects to gameboard
+2. Update game settings after user has changed the settings
 
 ## Additional Features
 
-Describe the additional features that has been implemented.
+(Currently none)
 
 ## Contributions
 
-List down the contribution of each group members.
+### Tan Hong Han
 
-For example:
+1. Creating gameboard template
 
-### Tony Stark
+### Anadani Muaaz
 
-1. Randomly generate game board.
-2. *add more*
-
-### Steve Rogers
-
-1. Zombie movement and attack behaviour.
-2. *add more*
-
-### Dr. Strange
-
-1. Implement all game objects.
-2. *add more*
+1. Creating menu navigations
 
 ## Problems Encountered & Solutions
 
-Describe the problems encountered and provide the solutions / plan for the solutions.
+1. Unable to update user input value of game settings
+- Unsolved. Planning to debug program and check class members and functions.
+
+2. Alien character not present in middle of gameboard
+- Solved by debugging and checking vector dimensions of the gameboard.
+
+3. (More problems to come)
