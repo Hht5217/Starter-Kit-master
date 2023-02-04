@@ -30,12 +30,7 @@ private:
     int BoardX_, BoardY_;
 
 public:
-    Board()
-    {
-        int BoardX = 7;
-        int BoardY = 7;
-        init(BoardX, BoardY);
-    }
+    Board(int BoardX = 7, int BoardY = 7);
     void init(int BoardX, int BoardY);
     void ShowBoard() const;
     void SetAlien();
@@ -49,19 +44,9 @@ void Lines()
     cout << string(40, '#') << endl;
 }
 
-void Board::mapUpdate(int NewX, int NewY)
+Board::Board(int BoardX, int BoardY)
 {
-    NewX = BoardX_;
-    NewY = BoardY_;
-}
-
-int Board::getColumn() const
-{
-    return BoardX_;
-}
-int Board::getRow() const
-{
-    return BoardY_;
+    init(BoardX, BoardY);
 }
 
 void Board::init(int BoardX, int BoardY)
@@ -83,6 +68,21 @@ void Board::init(int BoardX, int BoardY)
             map_[i][j] = objects[objNo];
         }
     }
+}
+
+void Board::mapUpdate(int NewX, int NewY)
+{
+    BoardX_ = NewX;
+    BoardY_ = NewY;
+}
+
+int Board::getColumn() const
+{
+    return BoardX_;
+}
+int Board::getRow() const
+{
+    return BoardY_;
 }
 
 void Board::ShowBoard() const
@@ -135,6 +135,8 @@ void Board::SetAlien()
     map_[BoardY_ / 2][BoardX_ / 2] = 'A';
 }
 
+Board globalboard;
+
 void PlayConfirmation()
 {
     Lines();
@@ -154,10 +156,9 @@ void PlayConfirmation()
         {
             if (playmenu == '1')
             {
-                Board play;
                 ClearScreen();
-                play.SetAlien();
-                play.ShowBoard();
+                globalboard.SetAlien();
+                globalboard.ShowBoard();
                 break;
             }
             else if (playmenu == '2')
@@ -183,14 +184,13 @@ int zomnum = 1;
 
 void MapSettings()
 {
-    Board mapset;
-    int numRows = mapset.getRow();
-    int numColumns = mapset.getColumn();
+    int numX;
+    int numY;
     Lines();
     cout << "Change the game Settings" << endl;
     Lines();
     cout << "1. Map size: "
-         << numRows << "x" << numColumns
+         << globalboard.getColumn() << "x" << globalboard.getRow()
          << "\n"
          << "2. Number of Zombies: " << zomnum
          << "\n"
@@ -211,11 +211,11 @@ void MapSettings()
                 Lines();
                 while (true)
                 {
-                    cout << "Enter rows => ";
-                    cin >> numRows;
-                    cout << "Enter columns => ";
-                    cin >> numColumns;
-                    if (numRows % 2 == 0 || numColumns % 2 == 0)
+                    cout << "Enter column/width => ";
+                    cin >> numX;
+                    cout << "Enter rows/width => ";
+                    cin >> numY;
+                    if (numX % 2 == 0 || numY % 2 == 0)
                     {
                         cout << "Rows / Columns entered is not an odd number, please try again." << endl;
                         Lines();
@@ -225,7 +225,7 @@ void MapSettings()
                         break;
                     }
                 }
-                mapset.mapUpdate(numColumns, numRows);
+                globalboard.mapUpdate(numX, numY);
                 ClearScreen();
                 MapSettings();
                 break;
