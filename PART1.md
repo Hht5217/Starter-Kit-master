@@ -2,7 +2,7 @@
 
 ## Video Demo
 
-Please provide the YouTube link to your [Video Demo](https://youtube.com).
+https://youtu.be/v7qBAPR_7j4
 
 ## Minimum Requirements
 - Creating a functional gameboard with characters and objects present
