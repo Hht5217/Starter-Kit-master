@@ -23,6 +23,8 @@ void MenuDisplay();
 void MapSettings();
 void PlayConfirmation();
 
+// Classes and methods
+
 class Board
 {
 private:
@@ -35,8 +37,12 @@ public:
     void ShowBoard() const;
     void SetAlien();
     void mapUpdate(int BoardX, int BoardY);
-    int getColumn() const;
-    int getRow() const;
+    int getBoardX() const;
+    int getBoardY() const;
+};
+
+class GameObj
+{
 };
 
 void Lines()
@@ -76,11 +82,11 @@ void Board::mapUpdate(int NewX, int NewY)
     BoardY_ = NewY;
 }
 
-int Board::getColumn() const
+int Board::getBoardX() const
 {
     return BoardX_;
 }
-int Board::getRow() const
+int Board::getBoardY() const
 {
     return BoardY_;
 }
@@ -134,8 +140,9 @@ void Board::SetAlien()
 {
     map_[BoardY_ / 2][BoardX_ / 2] = 'A';
 }
+// ################################################################
 
-Board globalboard;
+Board game;
 
 void PlayConfirmation()
 {
@@ -157,8 +164,9 @@ void PlayConfirmation()
             if (playmenu == '1')
             {
                 ClearScreen();
-                globalboard.SetAlien();
-                globalboard.ShowBoard();
+                game.init(game.getBoardX(), game.getBoardY());
+                game.SetAlien();
+                game.ShowBoard();
                 break;
             }
             else if (playmenu == '2')
@@ -190,7 +198,7 @@ void MapSettings()
     cout << "Change the game Settings" << endl;
     Lines();
     cout << "1. Map size: "
-         << globalboard.getColumn() << "x" << globalboard.getRow()
+         << game.getBoardX() << "x" << game.getBoardY()
          << "\n"
          << "2. Number of Zombies: " << zomnum
          << "\n"
@@ -211,13 +219,13 @@ void MapSettings()
                 Lines();
                 while (true)
                 {
-                    cout << "Enter column/width => ";
+                    cout << "Enter BoardX/width => ";
                     cin >> numX;
-                    cout << "Enter rows/width => ";
+                    cout << "Enter BoardYs/width => ";
                     cin >> numY;
                     if (numX % 2 == 0 || numY % 2 == 0)
                     {
-                        cout << "Rows / Columns entered is not an odd number, please try again." << endl;
+                        cout << "BoardYs / BoardXs entered is not an odd number, please try again." << endl;
                         Lines();
                     }
                     else
@@ -225,7 +233,7 @@ void MapSettings()
                         break;
                     }
                 }
-                globalboard.mapUpdate(numX, numY);
+                game.mapUpdate(numX, numY);
                 ClearScreen();
                 MapSettings();
                 break;
