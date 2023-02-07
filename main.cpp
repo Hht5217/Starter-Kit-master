@@ -375,6 +375,7 @@ void turnAlien()
              << "\n"
              << "5. exit" << endl;
         cin >> commanddir;
+    turn:
         vector<int> currentPos = game.posAlien();
         int posX = currentPos[0];
         int posY = currentPos[1];
@@ -404,8 +405,9 @@ void turnAlien()
                 {
                     game.moveAlien(posY, posX, movedir);
                     ClearScreen();
-                    turnAlien();
-                    break;
+                    game.ShowBoard();
+                    Pause();
+                    goto turn;
                 }
             }
             else if (commanddir == '2')
@@ -432,8 +434,9 @@ void turnAlien()
                 {
                     game.moveAlien(posY, posX, movedir);
                     ClearScreen();
-                    turnAlien();
-                    break;
+                    game.ShowBoard();
+                    Pause();
+                    goto turn;
                 }
             }
             else if (commanddir == '3')
@@ -460,8 +463,9 @@ void turnAlien()
                 {
                     game.moveAlien(posY, posX, movedir);
                     ClearScreen();
-                    turnAlien();
-                    break;
+                    game.ShowBoard();
+                    Pause();
+                    goto turn;
                 }
             }
             else if (commanddir == '4')
@@ -488,8 +492,9 @@ void turnAlien()
                 {
                     game.moveAlien(posY, posX, movedir);
                     ClearScreen();
-                    turnAlien();
-                    break;
+                    game.ShowBoard();
+                    Pause();
+                    goto turn;
                 }
             }
         }
@@ -575,11 +580,43 @@ first:
             else if (menu2 == '2')
             {
                 int updateZomb;
-                cout << "Enter number: ";
-                cin >> updateZomb;
-                numZomb = updateZomb;
                 ClearScreen();
-                goto first;
+                Lines();
+                cout << "Update number of zombies" << endl;
+                Lines();
+                while (true)
+                {
+                    cout << "Enter number of zombies(minimum 2, maximum 9): ";
+                    cin >> updateZomb;
+                    if (updateZomb < 2 || updateZomb > 9)
+                    {
+                        cout << "Number entered not in / out of range, please try again." << endl;
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            cout << "Are you sure? y/n: ";
+                            cin >> confirmation;
+                            if (confirmation == 'y')
+                            {
+                                numZomb = updateZomb;
+                                ClearScreen();
+                                goto first;
+                            }
+                            else if (confirmation == 'n')
+                            {
+                                ClearScreen();
+                                goto first;
+                            }
+                            else
+                            {
+                                cout << "Command not found, please try again." << endl;
+                                Lines();
+                            }
+                        }
+                    }
+                }
             }
             else if (menu2 == '3')
             {
