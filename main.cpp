@@ -22,7 +22,8 @@ using namespace pf;
 void MenuDisplay();
 void BoardSettings();
 void PlayConfirmation();
-void PlayGame();
+void turnAlien();
+void inGameStats();
 
 // Classes and methods
 
@@ -36,25 +37,25 @@ public:
     Board(int BoardX = 7, int BoardY = 7);
     void init(int BoardX, int BoardY);
     void ShowBoard() const;
-    void initAlien();
-    void boardUpdate(int BoardX, int BoardY);
+    void setAlien();
+    int initAlien();
+    void boardUpdate(int BoardY, int BoardX);
     int getBoardX() const;
     int getBoardY() const;
-    // int posAlien() const;
-    // void moveUp();
-    // void moveDown();
-    // void moveLeft();
-    // void moveRight();
-    void moveAlien(char movedir);
+    vector<int> posAlien();
+    void moveAlien(int posY, int posX, char movedir);
 };
 
 class GameObj
 {
+public:
+    void turnObj();
+    vector<vector<int>> initZombies(int numZomb);
 };
 
 void Lines()
 {
-    cout << string(40, '#') << endl;
+    cout << string(50, '#') << endl;
 }
 
 Board::Board(int BoardX, int BoardY)
@@ -83,10 +84,10 @@ void Board::init(int BoardX, int BoardY)
     }
 }
 
-void Board::boardUpdate(int NewX, int NewY)
+void Board::boardUpdate(int NewY, int NewX)
 {
-    BoardX_ = NewX;
     BoardY_ = NewY;
+    BoardX_ = NewX;
 }
 
 int Board::getBoardX() const
@@ -138,50 +139,50 @@ void Board::ShowBoard() const
         cout << " " << (j + 1) % 10;
     }
     cout << endl;
+    inGameStats();
 }
 
-void Board::initAlien()
+void Board::setAlien()
 {
     map_[BoardY_ / 2][BoardX_ / 2] = 'A';
 }
 
-// int Board::posAlien() const
-// {
-
-// }
-
-// void Board::moveUp()
-// {
-// }
-
-// void Board::moveDown()
-// {
-// }
-
-// void Board::moveLeft()
-// {
-// }
-
-// void Board::moveRight()
-// {
-// }
-
-void Board::moveAlien(char movedir)
+int Board::initAlien()
 {
-    int posX, posY;
+    int lb = 150, ub = 200;
+    int rn;
+    for (int i = 0; i < 1;)
+    {
+        rn = (rand() % (ub - lb + 1)) + lb;
+        if (rn % 10 == 0)
+        {
+            i++;
+        }
+    }
+
+    return rn;
+}
+
+vector<int> Board::posAlien()
+{
+    vector<int> posA{-1, -1};
     for (int i = 0; i < BoardY_; ++i)
     {
         for (int j = 0; j < BoardX_; ++j)
         {
             if (map_[i][j] == 'A')
             {
-                posX = j;
-                posY = i;
-                goto move;
+                posA[0] = j;
+                posA[1] = i;
+                return posA;
             }
         }
     }
-move:
+    return posA;
+}
+
+void Board::moveAlien(int posY, int posX, char movedir)
+{
     switch (movedir)
     {
     case '^':
@@ -202,9 +203,71 @@ move:
         break;
     }
 }
-// ################################################################
+
+void GameObj::turnObj()
+{
+    cout << "npc's turn start" << endl;
+    Pause();
+    cout << "npc's turn finished" << endl;
+    Pause();
+    ClearScreen();
+    turnAlien();
+}
+
+vector<vector<int>> GameObj::initZombies(int numZomb)
+{
+    int lb_life = 150, ub_life = 200;
+    int lb_atk = 5, ub_atk = 15;
+    int lb_range = 1, ub_range = 4;
+    vector<vector<int>> zombAttr;
+    zombAttr.resize(numZomb);
+    for (int r = 0; r < numZomb; ++r)
+    {
+        zombAttr[r].resize(3);
+    }
+    for (int i = 0; i < numZomb;)
+    {
+        for (int j = 0; j < 1;)
+        {
+            int rn_life = (rand() % (ub_life - lb_life + 1)) + lb_life;
+            if (rn_life % 10 == 0)
+            {
+                zombAttr[i][0] = rn_life;
+                j++;
+            }
+        }
+        for (int k = 0; k < 1;)
+        {
+            int rn_atk = (rand() % (ub_atk - lb_atk + 1)) + lb_atk;
+            if (rn_atk % 5 == 0)
+            {
+                zombAttr[i][1] = rn_atk;
+                k++;
+            }
+        }
+        for (int h = 0; h < 1; h++)
+        {
+            int rn_range = (rand() % (ub_range - lb_range + 1)) + lb_range;
+            zombAttr[i][2] = rn_range;
+        }
+        i++;
+    }
+    return zombAttr;
+}
+// ######################### functions ###########################
 
 Board game;
+GameObj npc;
+int numZomb = 2;
+void inGameStats()
+{
+    vector<vector<int>> zombAttr = npc.initZombies(numZomb);
+    cout << "Alien       :  Life " << game.initAlien() << ".  Attack 0" << endl;
+    for (int i = 0; i < zombAttr.size(); i++)
+    {
+        cout << "Zombie" << i + 1 << "    :  Life " << zombAttr[i][0] << ".  Attack   " << zombAttr[i][1] << "Range :  " << zombAttr[i][2] << endl;
+    }
+}
 
 void MenuDisplay()
 {
@@ -270,8 +333,8 @@ void PlayConfirmation()
             {
                 ClearScreen();
                 game.init(game.getBoardX(), game.getBoardY());
-                game.initAlien();
-                PlayGame();
+                game.setAlien();
+                turnAlien();
                 break;
             }
             else if (playmenu == '2')
@@ -293,13 +356,14 @@ void PlayConfirmation()
     }
 }
 
-void PlayGame()
+void turnAlien()
 {
     char commanddir;
     char movedir;
-    game.ShowBoard();
     while (true)
     {
+        ClearScreen();
+        game.ShowBoard();
         cout << "Please input a command: " << endl;
         cout << "1. up"
              << "\n"
@@ -311,28 +375,123 @@ void PlayGame()
              << "\n"
              << "5. exit" << endl;
         cin >> commanddir;
+        vector<int> currentPos = game.posAlien();
+        int posX = currentPos[0];
+        int posY = currentPos[1];
         if (commanddir == '1' || commanddir == '2' || commanddir == '3' || commanddir == '4')
         {
             if (commanddir == '1')
             {
                 movedir = '^';
+                if (posY == 1)
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien reached border" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else if (posY == 0)
+                {
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien hits border, position unchanged" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    turnAlien();
+                    break;
+                }
             }
             else if (commanddir == '2')
             {
                 movedir = 'v';
+                if (posY == (game.getBoardY() - 2))
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien reached border" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else if (posY == (game.getBoardY() - 1))
+                {
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien hits border, position unchanged" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    turnAlien();
+                    break;
+                }
             }
             else if (commanddir == '3')
             {
                 movedir = '<';
+                if (posX == 1)
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien reached border" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else if (posX == 0)
+                {
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien hits border, position unchanged" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    turnAlien();
+                    break;
+                }
             }
             else if (commanddir == '4')
             {
                 movedir = '>';
+                if (posX == (game.getBoardX() - 2))
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien reached border" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else if (posX == (game.getBoardX() - 1))
+                {
+                    ClearScreen();
+                    game.ShowBoard();
+                    cout << "Alien hits border, position unchanged" << endl;
+                    npc.turnObj();
+                    break;
+                }
+                else
+                {
+                    game.moveAlien(posY, posX, movedir);
+                    ClearScreen();
+                    turnAlien();
+                    break;
+                }
             }
-            game.moveAlien(movedir);
-            ClearScreen();
-            PlayGame();
-            break;
         }
         else if (commanddir == '5')
         {
@@ -341,6 +500,8 @@ void PlayGame()
         }
         else
         {
+            ClearScreen();
+            Lines();
             cout << "Command not found, please try again." << endl;
         }
     }
@@ -348,21 +509,24 @@ void PlayGame()
 
 void BoardSettings()
 {
+first:
     int numX;
     int numY;
     Lines();
-    cout << "Current board dimension: " << game.getBoardX() << "x" << game.getBoardY() << endl;
+    cout << "Current board dimension(row x column): " << game.getBoardY() << "x" << game.getBoardX() << endl;
     Lines();
     cout << "1. Change board size"
          << "\n"
-         << "2. Back" << endl;
+         << "2. Number of zombies: " << numZomb
+         << "\n"
+         << "3. Back" << endl;
 
     char menu2;
     while (true)
     {
         cout << "Please input a command(number): ";
         cin >> menu2;
-        if (menu2 == '1' || menu2 == '2')
+        if (menu2 == '1' || menu2 == '2' || menu2 == '3')
         {
             char confirmation;
             if (menu2 == '1')
@@ -373,13 +537,13 @@ void BoardSettings()
                 Lines();
                 while (true)
                 {
-                    cout << "Enter column/width => ";
-                    cin >> numX;
                     cout << "Enter row/height => ";
                     cin >> numY;
+                    cout << "Enter column/width => ";
+                    cin >> numX;
                     if (numX % 2 == 0 || numY % 2 == 0)
                     {
-                        cout << "Columns or rows entered is not an odd number, please try again." << endl;
+                        cout << "Rows or columns entered is not an odd number, please try again." << endl;
                         Lines();
                     }
                     else
@@ -390,16 +554,14 @@ void BoardSettings()
                             cin >> confirmation;
                             if (confirmation == 'y')
                             {
-                                game.boardUpdate(numX, numY);
+                                game.boardUpdate(numY, numX);
                                 ClearScreen();
-                                BoardSettings();
-                                break;
+                                goto first;
                             }
                             else if (confirmation == 'n')
                             {
                                 ClearScreen();
-                                BoardSettings();
-                                break;
+                                goto first;
                             }
                             else
                             {
@@ -408,15 +570,22 @@ void BoardSettings()
                             }
                         }
                     }
-                    break;
                 }
             }
             else if (menu2 == '2')
             {
+                int updateZomb;
+                cout << "Enter number: ";
+                cin >> updateZomb;
+                numZomb = updateZomb;
+                ClearScreen();
+                goto first;
+            }
+            else if (menu2 == '3')
+            {
                 MenuDisplay();
                 break;
             }
-            break;
         }
         else
         {
