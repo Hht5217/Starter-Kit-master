@@ -2,50 +2,41 @@
 
 ## Video Demo
 
-Please provide the YouTube link to your [Video Demo](https://youtube.com).
+TBA
 
 ## Minimum Requirements
 
 ### Completed
 
-List all the features completed.
-
-1. Cool Feature #1
-2. Cool Feature #2
-3. *add more*
+1. Randomize objects on the map.
+2. Randomly initialize alien and zombies attributes.
+3.
 
 ### To Do
 
-List all the features not yet done. Remove this section if there is no incomplete requirements.
-
-1. Cool Feature #1
-2. *add more*
+1. Take word input from user
 
 ## Additional Features
 
-Describe the additional features that has been implemented.
+TBA
 
 ## Contributions
 
-List down the contribution of each group members.
+### Tan Hong Han
 
-For example:
+1. 
 
-### Tony Stark
+### Anadani Muaaz
 
-1. Randomly generate game board.
-2. *add more*
-
-### Steve Rogers
-
-1. Zombie movement and attack behaviour.
-2. *add more*
-
-### Dr. Strange
-
-1. Implement all game objects.
-2. *add more*
+1.
 
 ## Problems Encountered & Solutions
 
-Describe the problems encountered and provide the solutions / plan for the solutions.
+1. Program reasking for command from previous function
+- Solved by adding "break;" to while loops.
+
+2. Type error exception when asking for user input
+-
+
+3. Zombies attributes keep changing due to rand() and recalling of functions
+- Solved by initializing value before game start and passing objects array by reference between functions.
