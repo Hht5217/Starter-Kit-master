@@ -16,6 +16,7 @@
 #include <ctime>
 #include <iomanip>
 #include <cctype>
+#include <cmath>
 using namespace std;
 using namespace pf;
 
@@ -68,8 +69,10 @@ public:
     int getattackAlien() const;
     char getObject(int BoardY, int BoardX) const;
     vector<int> posAlien();
-    void moveAlien(int posY, int posX, char move_arrow);
+    vector<int> posZombie(char zombie_digit);
+    void moveObject(int posY, int posX, char move_arrow, char AorZ, char zombie_digit);
     void resetTrail();
+    void updatelifeAlien(int value_life, char health_damage);
 };
 
 void Lines()
@@ -85,8 +88,8 @@ Board::Board(int BoardX, int BoardY)
 
 void Board::init(int BoardX, int BoardY)
 {
-    char objects[] = {' ', ' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
-    int noofObjects = 13;
+    char objects[] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
+    int noofObjects = 14;
     BoardX_ = BoardX;
     BoardY_ = BoardY;
     map_.resize(BoardY_);
@@ -231,33 +234,76 @@ vector<int> Board::posAlien()
     return posA;
 }
 
-void Board::moveAlien(int posY, int posX, char move_arrow)
+vector<int> Board::posZombie(char zombie_digit)
 {
-    switch (move_arrow)
+    vector<int> posZ{-1, -1};
+    for (int i = 0; i < BoardY_; ++i)
     {
-    case '^':
-        map_[posY - 1][posX] = 'A';
-        map_[posY][posX] = '.';
-        break;
-    case 'v':
-        map_[posY + 1][posX] = 'A';
-        map_[posY][posX] = '.';
-        break;
-    case '<':
-        map_[posY][posX - 1] = 'A';
-        map_[posY][posX] = '.';
-        break;
-    case '>':
-        map_[posY][posX + 1] = 'A';
-        map_[posY][posX] = '.';
-        break;
+        for (int j = 0; j < BoardX_; ++j)
+        {
+            if (map_[i][j] == zombie_digit)
+            {
+                posZ[0] = j;
+                posZ[1] = i;
+                return posZ;
+            }
+        }
+    }
+    return posZ;
+}
+
+void Board::moveObject(int posY, int posX, char move_arrow, char AorZ, char zombie_digit = 'z')
+{
+    if (AorZ == 'A')
+    {
+        switch (move_arrow)
+        {
+        case '^':
+            map_[posY - 1][posX] = 'A';
+            map_[posY][posX] = '.';
+            break;
+        case 'v':
+            map_[posY + 1][posX] = 'A';
+            map_[posY][posX] = '.';
+            break;
+        case '<':
+            map_[posY][posX - 1] = 'A';
+            map_[posY][posX] = '.';
+            break;
+        case '>':
+            map_[posY][posX + 1] = 'A';
+            map_[posY][posX] = '.';
+            break;
+        }
+    }
+    else if (AorZ == 'Z')
+    {
+        switch (move_arrow)
+        {
+        case '^':
+            map_[posY - 1][posX] = zombie_digit;
+            map_[posY][posX] = ' ';
+            break;
+        case 'v':
+            map_[posY + 1][posX] = zombie_digit;
+            map_[posY][posX] = ' ';
+            break;
+        case '<':
+            map_[posY][posX - 1] = zombie_digit;
+            map_[posY][posX] = ' ';
+            break;
+        case '>':
+            map_[posY][posX + 1] = zombie_digit;
+            map_[posY][posX] = ' ';
+            break;
+        }
     }
 }
 
 void Board::resetTrail()
 {
-    char objects[] = {' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
-    int noofObjects = 13;
+    char objects[] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
+    int noofObjects = 15;
     for (int i = 0; i < BoardY_; ++i)
     {
         for (int j = 0; j < BoardX_; ++j)
@@ -268,6 +314,18 @@ void Board::resetTrail()
                 map_[i][j] = objects[objNo];
             }
         }
+    }
+}
+
+void Board::updatelifeAlien(int value_life, char health_damage)
+{
+    if (health_damage == 'h')
+    {
+        lifeAlien_ += value_life;
+    }
+    else if (health_damage == 'd')
+    {
+        lifeAlien_ -= value_life;
     }
 }
 
@@ -467,7 +525,6 @@ void turnAlien(vector<GameObject> &Zombies)
         char objectCheck;
         if (command_arrow == '1')
         {
-        turnup:
             move_arrow = '^';
             objectCheck = game.getObject((posY - 1), (posX));
             if (isdigit(objectCheck))
@@ -484,6 +541,7 @@ void turnAlien(vector<GameObject> &Zombies)
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien hits zombie, trail reset" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
@@ -494,13 +552,14 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits rock, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
             else if (objectCheck == 'v')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '2';
                 Pause();
@@ -509,7 +568,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '<')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '3';
                 Pause();
@@ -518,7 +577,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '>')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '4';
                 Pause();
@@ -528,11 +587,12 @@ void turnAlien(vector<GameObject> &Zombies)
             {
                 if (posY == 1)
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien reached border, trail reset" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
@@ -542,12 +602,13 @@ void turnAlien(vector<GameObject> &Zombies)
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien hits border, position unchanged" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
                 else
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.ShowBoard(Zombies);
                     Pause();
@@ -557,7 +618,6 @@ void turnAlien(vector<GameObject> &Zombies)
         }
         else if (command_arrow == '2')
         {
-        turndown:
             move_arrow = 'v';
             objectCheck = game.getObject((posY + 1), (posX));
             if (isdigit(objectCheck))
@@ -566,6 +626,7 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits zombie, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
@@ -575,13 +636,14 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits rock, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
             else if (objectCheck == '^')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '1';
                 Pause();
@@ -590,7 +652,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '<')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '3';
                 Pause();
@@ -599,7 +661,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '>')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '4';
                 Pause();
@@ -609,11 +671,12 @@ void turnAlien(vector<GameObject> &Zombies)
             {
                 if (posY == (game.getBoardY() - 2))
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien reached border, trail reset" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
@@ -623,12 +686,13 @@ void turnAlien(vector<GameObject> &Zombies)
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien hits border, position unchanged" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
                 else
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.ShowBoard(Zombies);
                     Pause();
@@ -638,7 +702,6 @@ void turnAlien(vector<GameObject> &Zombies)
         }
         else if (command_arrow == '3')
         {
-        turnleft:
             move_arrow = '<';
             objectCheck = game.getObject((posY), (posX - 1));
             if (isdigit(objectCheck))
@@ -647,6 +710,7 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits zombie, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
@@ -656,13 +720,14 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits rock, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
             else if (objectCheck == '^')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '1';
                 Pause();
@@ -671,7 +736,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == 'v')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '2';
                 Pause();
@@ -680,7 +745,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '>')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '4';
                 Pause();
@@ -690,11 +755,12 @@ void turnAlien(vector<GameObject> &Zombies)
             {
                 if (posX == 1)
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien reached border, trail reset" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
@@ -704,12 +770,13 @@ void turnAlien(vector<GameObject> &Zombies)
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien hits border, position unchanged" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
                 else
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.ShowBoard(Zombies);
                     Pause();
@@ -719,7 +786,6 @@ void turnAlien(vector<GameObject> &Zombies)
         }
         else if (command_arrow == '4')
         {
-        turnright:
             move_arrow = '>';
             objectCheck = game.getObject((posY), (posX + 1));
             if (isdigit(objectCheck))
@@ -728,6 +794,7 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits zombie, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
@@ -737,13 +804,14 @@ void turnAlien(vector<GameObject> &Zombies)
                 game.resetTrail();
                 game.ShowBoard(Zombies);
                 cout << "Alien hits rock, trail reset" << endl;
+                Pause();
                 turnObject(Zombies);
                 break;
             }
             else if (objectCheck == '^')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '1';
                 Pause();
@@ -752,7 +820,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == 'v')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '2';
                 Pause();
@@ -761,7 +829,7 @@ void turnAlien(vector<GameObject> &Zombies)
             else if (objectCheck == '<')
             {
                 ClearScreen();
-                game.moveAlien(posY, posX, move_arrow);
+                game.moveObject(posY, posX, move_arrow, 'A');
                 game.ShowBoard(Zombies);
                 command_arrow = '3';
                 Pause();
@@ -771,11 +839,12 @@ void turnAlien(vector<GameObject> &Zombies)
             {
                 if (posX == (game.getBoardX() - 2))
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien reached border, trail reset" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
@@ -785,12 +854,13 @@ void turnAlien(vector<GameObject> &Zombies)
                     game.resetTrail();
                     game.ShowBoard(Zombies);
                     cout << "Alien hits border, position unchanged" << endl;
+                    Pause();
                     turnObject(Zombies);
                     break;
                 }
                 else
                 {
-                    game.moveAlien(posY, posX, move_arrow);
+                    game.moveObject(posY, posX, move_arrow, 'A');
                     ClearScreen();
                     game.ShowBoard(Zombies);
                     Pause();
@@ -814,16 +884,165 @@ void turnAlien(vector<GameObject> &Zombies)
 
 void turnObject(vector<GameObject> &Zombies)
 {
-    cout << "npc's turn start" << endl;
-    Pause();
-    cout << "npc's turn finished" << endl;
-    Pause();
+    for (int i = 0; i < size(Zombies); ++i)
+    {
+        ClearScreen();
+        game.ShowBoard(Zombies);
+        cout << "Zombie " << i + 1 << "'s turn" << endl;
+        // check if zombie still alive
+        if (Zombies[i].getlifeZombie() != 0)
+        {
+            Pause();
+            vector<int> currentpos_Zombie = game.posZombie((i + 49));
+            int posY_Zombie = currentpos_Zombie[1];
+            int posX_Zombie = currentpos_Zombie[0];
+
+            // Zombie's attack
+            int attack_zombie = Zombies[i].getattackZombie();
+            vector<int> currentpos_Alien = game.posAlien();
+            int differenceY = abs(currentpos_Alien[1] - posY_Zombie);
+            int differenceX = abs(currentpos_Alien[0] - posX_Zombie);
+            if ((differenceY <= Zombies[i].getrangeZombie() && differenceY > 0) && (differenceX <= Zombies[i].getrangeZombie() && differenceX > 0))
+            {
+                game.updatelifeAlien(attack_zombie, 'd');
+                ClearScreen();
+                game.ShowBoard(Zombies);
+                cout << "Zombie " << i + 1 << " has attacked alien with damage of " << attack_zombie << endl;
+                Pause();
+            }
+            else
+            {
+                ClearScreen();
+                game.ShowBoard(Zombies);
+                cout << "Alien out of range, zombie " << i + 1 << " does not attack." << endl;
+                Pause();
+            }
+
+            // Zombie's move
+            char moveUp = 'm';
+            char moveDown = 'm';
+            char moveLeft = 'm';
+            char moveRight = 'm';
+
+            // Check 9 cases: 4 corner -> 4 border not corner -> not corner nor border
+            if (posY_Zombie == 0 && posX_Zombie == 0) // top left corner
+            {
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+            else if (posY_Zombie == 0 && posX_Zombie == (game.getBoardX() - 1)) // top right corner
+            {
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+            }
+            else if (posY_Zombie == (game.getBoardY() - 1) && posX_Zombie == 0) // bottom left corner
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+            else if (posY_Zombie == (game.getBoardY() - 1) && posX_Zombie == (game.getBoardX() - 1)) // bottom right corner
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+            }
+            else if (posY_Zombie == 0) // top row border
+            {
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+            else if (posY_Zombie == (game.getBoardY() - 1)) // bottom row border
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+            else if (posX_Zombie == 0) // left column border
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+            else if (posX_Zombie == (game.getBoardX() - 1)) // right column border
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+            }
+            else // not at any border
+            {
+                moveUp = game.getObject(posY_Zombie - 1, posX_Zombie);
+                moveDown = game.getObject(posY_Zombie + 1, posX_Zombie);
+                moveLeft = game.getObject(posY_Zombie, posX_Zombie - 1);
+                moveRight = game.getObject(posY_Zombie, posX_Zombie + 1);
+            }
+
+            if (moveUp == ' ' || moveDown == ' ' || moveLeft == ' ' || moveRight == ' ')
+            {
+                while (true)
+                {
+                    int moveZombie = rand() % 4;
+                    if (moveZombie == 0 && moveUp == ' ')
+                    {
+                        game.moveObject(posY_Zombie, posX_Zombie, '^', 'Z', (i + 49));
+                        ClearScreen();
+                        game.ShowBoard(Zombies);
+                        cout << "Zombie " << i + 1 << " has moved upwards." << endl;
+                        Pause();
+                        break;
+                    }
+                    else if (moveZombie == 1 && moveDown == ' ')
+                    {
+                        game.moveObject(posY_Zombie, posX_Zombie, 'v', 'Z', (i + 49));
+                        ClearScreen();
+                        game.ShowBoard(Zombies);
+                        cout << "Zombie " << i + 1 << " has moved downwards." << endl;
+                        Pause();
+                        break;
+                    }
+                    else if (moveZombie == 2 && moveLeft == ' ')
+                    {
+                        game.moveObject(posY_Zombie, posX_Zombie, '<', 'Z', (i + 49));
+                        ClearScreen();
+                        game.ShowBoard(Zombies);
+                        cout << "Zombie " << i + 1 << " has moved to left." << endl;
+                        Pause();
+                        break;
+                    }
+                    else if (moveZombie == 3 && moveRight == ' ')
+                    {
+                        game.moveObject(posY_Zombie, posX_Zombie, '>', 'Z', (i + 49));
+                        ClearScreen();
+                        game.ShowBoard(Zombies);
+                        cout << "Zombie " << i + 1 << " has moved to right." << endl;
+                        Pause();
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                ClearScreen();
+                game.ShowBoard(Zombies);
+                cout << "Zombie " << i + 1 << " has no place to move." << endl;
+                Pause();
+            }
+        }
+        else
+        {
+            continue;
+        }
+    }
     ClearScreen();
     turnAlien(Zombies);
 }
 
 void RockObject()
 {
+    const int noofhidden = 2;
+    char hiddenObject[noofhidden] = {'p', 'h'};
+    int revealObject = rand() % noofhidden;
+    game.posAlien();
 }
 
 void ZombieObject()
