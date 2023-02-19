@@ -10,6 +10,8 @@
 
 #include "pf/helper.h"
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <cstring>
 #include <vector>
 #include <cstdlib>
@@ -30,6 +32,7 @@ public:
     int getattackZombie() const;
     int getrangeZombie() const;
     void updatelifeZombie(int value_attack);
+    void loadupdateZombie(int load_life, int load_attack, int load_range);
 
 private:
     int life_;
@@ -52,15 +55,15 @@ class Board
 private:
     vector<vector<char>> map_;
     int BoardX_, BoardY_;
-    int initlifeAlien_;
+    int initailizeAlienLife_;
     int lifeAlien_;
     int attackAlien_;
 
 public:
     Board(int BoardX = 7, int BoardY = 7);
-    void init(int BoardX, int BoardY);
+    void initializeboard(int BoardX, int BoardY);
     void ShowBoard(vector<Zombie> &Zombies) const;
-    void initObjects(int &init_numZombie);
+    void initializeObjects(int &initialNumberOfZombies);
     void boardUpdate(int BoardY, int BoardX);
     int getBoardX() const;
     int getBoardY() const;
@@ -74,6 +77,9 @@ public:
     void hitRock(const int posY_A, const int posX_A, const char location_rock);
     void updatelifeAlien(int value_life, char health_damage);
     void updateattackAlien(char add_reset);
+    void changeArrow(int arrowY, int arrowX, char arrowChange);
+    void loadupdateAlien(int load_life, int load_attack);
+    void loadupdateBoard(const vector<vector<char>> &load_board);
 };
 // ####################### some functions ######################
 void Lines()
@@ -90,13 +96,13 @@ void CleanInput()
 // ####################### Board class functions #######################
 Board::Board(int BoardX, int BoardY)
 {
-    init(BoardX, BoardY);
+    initializeboard(BoardX, BoardY);
 }
 
-void Board::init(int BoardX, int BoardY)
+void Board::initializeboard(int BoardX, int BoardY)
 {
     char objects[] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
-    int noofObjects = 14;
+    int numberOfObjects = 14;
     BoardX_ = BoardX;
     BoardY_ = BoardY;
     map_.resize(BoardY_);
@@ -108,8 +114,8 @@ void Board::init(int BoardX, int BoardY)
     {
         for (int j = 0; j < BoardX_; ++j)
         {
-            int objNo = rand() % noofObjects;
-            map_[i][j] = objects[objNo];
+            int objectNumber = rand() % numberOfObjects;
+            map_[i][j] = objects[objectNumber];
         }
     }
 }
@@ -196,13 +202,13 @@ void Board::ShowBoard(vector<Zombie> &Zombies) const
     cout << endl;
 }
 
-void Board::initObjects(int &init_numZombie)
+void Board::initializeObjects(int &initialNumberOfZombies)
 {
     map_[BoardY_ / 2][BoardX_ / 2] = 'A';
-    lifeAlien_ = initlifeAlien_ = setLife('a');
+    lifeAlien_ = initailizeAlienLife_ = setLife('a');
     attackAlien_ = 0;
 
-    for (int z = 0; z < init_numZombie; ++z)
+    for (int z = 0; z < initialNumberOfZombies; ++z)
     {
         while (true)
         {
@@ -310,15 +316,15 @@ void Board::moveObject(int posY, int posX, char move_arrow, char AorZ, char zomb
 void Board::resetTrail()
 {
     char objects[] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'h', 'p', 'r', '^', 'v', '<', '>'};
-    int noofObjects = 15;
+    int numberOfObjects = 15;
     for (int i = 0; i < BoardY_; ++i)
     {
         for (int j = 0; j < BoardX_; ++j)
         {
             if (map_[i][j] == '.')
             {
-                int objNo = rand() % noofObjects;
-                map_[i][j] = objects[objNo];
+                int objectNumber = rand() % numberOfObjects;
+                map_[i][j] = objects[objectNumber];
             }
         }
     }
@@ -366,7 +372,7 @@ void Board::updatelifeAlien(int value_life, char health_damage)
 {
     if (health_damage == 'h')
     {
-        if (lifeAlien_ == initlifeAlien_)
+        if (lifeAlien_ == initailizeAlienLife_)
             lifeAlien_ += 0;
         else
             lifeAlien_ += value_life;
@@ -386,6 +392,37 @@ void Board::updateattackAlien(char add_reset)
         attackAlien_ += 20;
     else if (add_reset == 'r')
         attackAlien_ = 0;
+}
+
+void Board::changeArrow(int arrowY, int arrowX, char arrowChange)
+{
+    map_[arrowY][arrowX] = arrowChange;
+}
+
+void Board::loadupdateAlien(int load_life, int load_attack)
+{
+    lifeAlien_ = load_life;
+    attackAlien_ = load_attack;
+}
+
+void Board::loadupdateBoard(const vector<vector<char>> &load_board)
+{
+    int loadboardY = size(load_board);
+    int loadboardX = size(load_board[0]);
+    BoardY_ = loadboardY;
+    BoardX_ = loadboardX;
+    map_.resize(loadboardY);
+    for (int r = 0; r < loadboardY; ++r)
+    {
+        map_[r].resize(loadboardX);
+    }
+    for (int ly = 0; ly < loadboardY; ++ly)
+    {
+        for (int lx = 0; lx < loadboardX; ++lx)
+        {
+            map_[ly][lx] = load_board[ly][lx];
+        }
+    }
 }
 
 // ################# Zombie class functions #####################
@@ -430,10 +467,17 @@ void Zombie::updatelifeZombie(int value_attack)
         life_ -= value_attack;
 }
 
+void Zombie::loadupdateZombie(int load_life, int load_attack, int load_range)
+{
+    life_ = load_life;
+    attack_ = load_attack;
+    range_ = load_range;
+}
+
 // ######################### other functions ###########################
 
 Board game;
-int init_numZombie = 2;
+int initialNumberOfZombies = 2;
 int setLife(char AorZ)
 {
     // upper and lower limits for setting life value
@@ -555,10 +599,10 @@ void PlayConfirmation()
         {
             CleanInput();
             ClearScreen();
-            game.init(game.getBoardX(), game.getBoardY());
-            game.initObjects(init_numZombie);
+            game.initializeboard(game.getBoardX(), game.getBoardY());
+            game.initializeObjects(initialNumberOfZombies);
             vector<Zombie> Zombies;
-            for (int i = 0; i < init_numZombie; ++i)
+            for (int i = 0; i < initialNumberOfZombies; ++i)
             {
                 int life = setLife('z');
                 int attack = setAttack();
@@ -603,7 +647,8 @@ void turnAlien(vector<Zombie> &Zombies)
     }
     else
     {
-        string command_arrow;
+    nonturn:
+        string main_command;
         char move_arrow;
         while (true)
         {
@@ -617,19 +662,26 @@ void turnAlien(vector<Zombie> &Zombies)
                  << "\n"
                  << "4. right"
                  << "\n"
-                 << "5. quit"
+                 << "5. arrow"
                  << "\n"
-                 << "(not implemented yet: help, save, load)\n=>";
+                 << "6. help"
+                 << "\n"
+                 << "7. save"
+                 << "\n"
+                 << "8. load"
+                 << "\n"
+                 << "9. quit (to menu)"
+                 << endl;
 
-            getline(cin, command_arrow);
-            size_t pos = command_arrow.find(' ');
+            getline(cin, main_command);
+            size_t pos = main_command.find(' ');
             if (pos != string::npos)
             {
-                command_arrow = command_arrow.substr(0, pos);
+                main_command = main_command.substr(0, pos);
             }
-            for (int l = 0; l < size(command_arrow); ++l)
+            for (int l = 0; l < size(main_command); ++l)
             {
-                command_arrow[l] = tolower(command_arrow[l]);
+                main_command[l] = tolower(main_command[l]);
             }
 
         turn:
@@ -641,8 +693,10 @@ void turnAlien(vector<Zombie> &Zombies)
             int numofZombies = size(Zombies);
             int pod_attack;
 
+            bool saveongoinggame = true;
+
             // alien move up
-            if (command_arrow == "up")
+            if (main_command == "up")
             {
                 cin.clear();
                 move_arrow = '^';
@@ -741,7 +795,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "down";
+                        main_command = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -752,7 +806,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "left";
+                        main_command = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left" << endl;
                         Pause();
                         goto turn;
@@ -763,7 +817,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "right";
+                        main_command = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right" << endl;
                         Pause();
                         goto turn;
@@ -780,7 +834,7 @@ void turnAlien(vector<Zombie> &Zombies)
             }
 
             // alien move down
-            else if (command_arrow == "down")
+            else if (main_command == "down")
             {
                 cin.clear();
                 move_arrow = 'v';
@@ -879,7 +933,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "up";
+                        main_command = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -890,7 +944,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "left";
+                        main_command = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left" << endl;
                         Pause();
                         goto turn;
@@ -901,7 +955,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "right";
+                        main_command = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right" << endl;
                         Pause();
                         goto turn;
@@ -918,7 +972,7 @@ void turnAlien(vector<Zombie> &Zombies)
                 }
             }
             // alien move left
-            else if (command_arrow == "left")
+            else if (main_command == "left")
             {
                 cin.clear();
                 move_arrow = '<';
@@ -1017,7 +1071,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "up";
+                        main_command = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -1028,7 +1082,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "down";
+                        main_command = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -1039,7 +1093,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "right";
+                        main_command = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right." << endl;
                         Pause();
                         goto turn;
@@ -1055,7 +1109,7 @@ void turnAlien(vector<Zombie> &Zombies)
                 }
             }
             // alien move right
-            else if (command_arrow == "right")
+            else if (main_command == "right")
             {
                 cin.clear();
                 move_arrow = '>';
@@ -1154,7 +1208,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "up";
+                        main_command = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -1165,7 +1219,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "down";
+                        main_command = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -1176,7 +1230,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = "left";
+                        main_command = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left." << endl;
                         Pause();
                         goto turn;
@@ -1192,7 +1246,394 @@ void turnAlien(vector<Zombie> &Zombies)
                     }
                 }
             }
-            else if (command_arrow == "quit")
+            else if (main_command == "arrow")
+            {
+                cin.clear();
+                int oriY = game.getBoardY();
+                int oriX = game.getBoardX();
+                int arrowY, arrowX;
+                char changeArrow;
+                while (true)
+                {
+                    while (cout << "Enter row of arrow: " && (!(cin >> arrowY) || (arrowY < 1 || arrowY > oriY)))
+                    {
+                        CleanInput();
+                        cout << "Invalid input: input is not an integer / number not in range." << endl;
+                    }
+                    CleanInput();
+                    while (cout << "Enter column of arrow: " && (!(cin >> arrowX) || (arrowX < 1 || arrowX > oriX)))
+                    {
+                        CleanInput();
+                        cout << "Invalid input: input is not an integer / number not in range." << endl;
+                    }
+                    CleanInput();
+                    char checkArrow = game.getObject((oriY - arrowY), (arrowX - 1));
+                    if (checkArrow == '^' || checkArrow == 'v' || checkArrow == '<' || checkArrow == '>')
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        cout << "No arrow in this cell, please try again." << endl;
+                    }
+                }
+
+                while (cout << "Enter direction you want to changed ('^', 'v', '<', '>'): " && (!(cin >> changeArrow) || ((changeArrow != '^') && (changeArrow != 'v') && (changeArrow != '<') && (changeArrow != '>'))))
+                {
+                    CleanInput();
+                    cout << "Invalid input: input is not a single character / not defined." << endl;
+                }
+                CleanInput();
+
+                game.changeArrow(oriY - arrowY, arrowX - 1, changeArrow);
+                ClearScreen();
+                game.ShowBoard(Zombies);
+                cout << "Arrow at " << arrowY << "," << arrowX << " changed." << endl;
+                Pause();
+                ClearScreen();
+                goto nonturn;
+            }
+            else if (main_command == "help")
+            {
+                cin.clear();
+                Lines();
+                cout << "Command  --  Description" << endl;
+                Lines();
+                cout << "up  -> Alien to move up. \n"
+                     << "down  -> Alien to move down. \n"
+                     << "left  -> Alien to move left. \n"
+                     << "right -> Alien to move right. \n"
+                     << "arrow -> Switch the direction of an arrow object in the game board. \n"
+                     << "help -> List and describe the commands that the player can use in the game. \n"
+                     << "save -> Save the current game to a file. \n"
+                     << "load -> Load a saved game from a file. \n"
+                     << "quit -> Quit the game while still in play. \n";
+                Pause();
+                ClearScreen();
+                goto nonturn;
+            }
+            else if (main_command == "save")
+            {
+                saveongoinggame = false;
+            saveongoing:
+                cin.clear();
+                bool file_savenew = true;
+                string savefolder = "game_saves";
+                string savefile_name;
+
+                cout << "Name the save file(without format): ";
+                cin >> savefile_name;
+                // example: game_saves/name.txt
+                string savepath = savefolder + "/" + savefile_name + ".txt";
+
+                filesystem::create_directory(savefolder);
+
+                bool file_exists = false;
+                for (const auto &entry : filesystem::directory_iterator(savefolder))
+                {
+                    if (entry.is_regular_file())
+                    {
+                        if (entry.path().filename() == (savefile_name + ".txt"))
+                        {
+                            file_exists = true;
+                            break;
+                        }
+                    }
+                }
+
+                bool file_overwrite = false;
+                if (file_exists)
+                {
+                    string overwrite;
+                    cout << "Save file named " << savefile_name << " exists. Do you want to overwrite it? (number)" << endl;
+                    cout << "1. Yes" << endl
+                         << "2. No" << endl;
+                    while (true)
+                    {
+                        cin >> overwrite;
+                        if (overwrite == "1")
+                        {
+                            file_overwrite = true;
+                            break;
+                        }
+                        else if (overwrite == "2")
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cin.clear();
+                            cout << endl;
+                            cout << "Command not found, please try again." << endl;
+                            Pause();
+                        }
+                    }
+                }
+                else
+                {
+                    string saveconfirmation;
+                    if (saveongoinggame = false)
+                    {
+                        cout << "Confirm save new file? (number)" << endl;
+                        cout << "1. Yes" << endl
+                             << "2. No" << endl;
+                        while (true)
+                        {
+                            cin >> saveconfirmation;
+                            if (saveconfirmation == "1")
+                            {
+                                break;
+                            }
+                            else if (saveconfirmation == "2")
+                            {
+                                file_savenew = false;
+                                break;
+                            }
+                            else
+                            {
+                                cin.clear();
+                                cout << endl;
+                                cout << "Command not found, please try again." << endl;
+                                Pause();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        cout << "Confirm save ongoing game? (number)" << endl;
+                        cout << "1. Yes" << endl
+                             << "2. No" << endl;
+                        while (true)
+                        {
+                            cin >> saveconfirmation;
+                            if (saveconfirmation == "1")
+                            {
+                                break;
+                            }
+                            else if (saveconfirmation == "2")
+                            {
+                                saveongoinggame = false;
+                                goto loadongoinggame;
+                            }
+                            else
+                            {
+                                cin.clear();
+                                cout << endl;
+                                cout << "Command not found, please try again." << endl;
+                                Pause();
+                            }
+                        }
+                    }
+                }
+
+                if ((file_overwrite == true) && (file_savenew == true))
+                {
+                    ofstream savegame(savepath);
+                    if (!savegame)
+                    {
+                        cout << "There is an error creating the save file" << endl;
+                    }
+                    else
+                    {
+                        savegame << "Zombies: " << endl;
+                        for (int saveZ = 0; saveZ < size(Zombies); ++saveZ)
+                        {
+                            savegame << Zombies[saveZ].getlifeZombie() << " " << Zombies[saveZ].getattackZombie() << " " << Zombies[saveZ].getrangeZombie() << endl;
+                        }
+                        savegame << endl;
+
+                        savegame << "Saved alien: " << endl;
+                        savegame << game.getlifeAlien() << " " << game.getattackAlien() << endl;
+                        savegame << endl;
+                        savegame << "Board: " << endl;
+                        savegame << game.getBoardY() << " " << game.getBoardX() << endl;
+                        for (int saveY = 0; saveY < game.getBoardY(); ++saveY)
+                        {
+                            for (int saveX = 0; saveX < game.getBoardX(); ++saveX)
+                            {
+                                savegame << game.getObject(saveY, saveX) << " ";
+                            }
+                            savegame << endl;
+                        }
+                        cout << "Save file created successfully." << endl;
+                        savegame.close();
+                    }
+                    Pause();
+                    ClearScreen();
+                    goto nonturn;
+                }
+                else
+                {
+                    cout << "File is not created." << endl;
+                    Pause();
+                    ClearScreen();
+                    goto nonturn;
+                }
+            }
+            // load command
+            else if (main_command == "load")
+            {
+                if (saveongoinggame)
+                {
+                    string saveconfirmation;
+                    cout << "Save ongoing game? (number)" << endl;
+                    cout << "1. Yes" << endl
+                         << "2. No" << endl;
+                    while (true)
+                    {
+                        cin >> saveconfirmation;
+                        if (saveconfirmation == "1")
+                        {
+                            saveongoinggame = true;
+                            goto saveongoing;
+                        }
+                        else if (saveconfirmation == "2")
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cin.clear();
+                            cout << endl;
+                            cout << "Command not found, please try again." << endl;
+                            Pause();
+                        }
+                    }
+                }
+            loadongoinggame:
+                string loadfolder = "game_saves";
+                string loadfile_name;
+
+                cout << "Choose which file you want to load (name, without format):" << endl;
+                for (const auto &entry : filesystem::directory_iterator(loadfolder))
+                {
+                    if (entry.is_regular_file())
+                    {
+                        cout << entry.path().filename() << endl;
+                    }
+                }
+                cout << "=> ";
+                cin >> loadfile_name;
+
+                ifstream loadfile("game_saves/" + loadfile_name + ".txt");
+                if (!loadfile)
+                {
+                    cout << "Failed to load file." << endl;
+                    Pause();
+                    ClearScreen();
+                    goto nonturn;
+                }
+                else
+                {
+                    int num_Zombie_loaded = 0;
+                    vector<int> load_zombie;
+                    load_zombie.resize(1);
+                    vector<int> load_alien;
+                    load_alien.resize(2);
+                    vector<vector<char>> load_board;
+                    int numY, numX;
+                    int loadY = 0;
+                    bool can_loadobjects = false;
+                    string line;
+                    while (getline(loadfile, line))
+                    {
+                        if (line.empty())
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            if (line[0] == 'Z')
+                            {
+                                int num1, num2, num3;
+                                while (loadfile >> num1 >> num2 >> num3)
+                                {
+                                    load_zombie.push_back(num1);
+                                    load_zombie.push_back(num2);
+                                    load_zombie.push_back(num3);
+                                    num_Zombie_loaded++;
+                                }
+                            }
+                            else if (line[0] == 'S')
+                            {
+                                int num1, num2;
+                                while (loadfile >> num1 >> num2)
+                                {
+                                    load_alien[0] = num1;
+                                    load_alien[1] = num2;
+                                }
+                            }
+                            else if (line[0] == 'B')
+                            {
+                                loadfile >> numY >> numX;
+                                load_board.resize(numY);
+                                for (int r = 0; r < numY; ++r)
+                                {
+                                    load_board[r].resize(numX);
+                                }
+                                can_loadobjects = true;
+                            }
+                            else if (can_loadobjects == true)
+                            {
+                                for (int loadX = 0; loadX < numX; ++loadX)
+                                    load_board[loadY][loadX] = line[loadX * 2];
+                                ++loadY;
+                            }
+                        }
+                        loadfile.clear();
+                    }
+                    loadfile.close();
+                    load_zombie.erase(load_zombie.begin());
+
+                    // Load and assign zombies
+                    int differenceload = abs(int(num_Zombie_loaded - size(Zombies)));
+                    if (num_Zombie_loaded > size(Zombies))
+                    {
+                        for (int i = 0, j = 0; i < size(load_zombie), j < (num_Zombie_loaded - differenceload); i += 3, j++)
+                        {
+                            Zombies[j].loadupdateZombie(load_zombie[0 + i], load_zombie[1 + i], load_zombie[2 + i]);
+                        }
+                        for (int c = 0, d = 0; d < differenceload; c += 3, ++d)
+                        {
+                            int loadindex = size(load_zombie) - (differenceload * 3);
+                            Zombie npc(load_zombie[loadindex + c + 0], load_zombie[loadindex + c + 1], load_zombie[loadindex + c + 2]);
+                            Zombies.push_back(npc);
+                        }
+                    }
+                    else if (num_Zombie_loaded < size(Zombies))
+                    {
+                        for (int d = 0; d < differenceload; ++d)
+                        {
+                            Zombies.pop_back();
+                        }
+                        for (int i = 0, j = 0; i < size(load_zombie), j < num_Zombie_loaded; i += 3, j++)
+                        {
+                            Zombies[j].loadupdateZombie(load_zombie[0 + i], load_zombie[1 + i], load_zombie[2 + i]);
+                        }
+                    }
+                    else if (num_Zombie_loaded == size(Zombies))
+                    {
+                        for (int i = 0, j = 0; i < size(load_zombie), j < num_Zombie_loaded; i += 3, j++)
+                        {
+                            Zombies[j].loadupdateZombie(load_zombie[0 + i], load_zombie[1 + i], load_zombie[2 + i]);
+                        }
+                    }
+
+                    // Load alien
+                    game.loadupdateAlien(load_alien[0], load_alien[1]);
+
+                    // Load board
+                    game.loadupdateBoard(load_board);
+
+                    ClearScreen();
+                    game.ShowBoard(Zombies);
+                    cout << "Game loaded successfully." << endl;
+                    Pause();
+                    ClearScreen();
+                    goto nonturn;
+                }
+            }
+            else if (main_command == "quit")
             {
                 cin.clear();
                 MenuDisplay();
@@ -1200,10 +1641,11 @@ void turnAlien(vector<Zombie> &Zombies)
             }
             else
             {
-                ClearScreen();
-                Lines();
+                cin.clear();
+                cout << endl;
                 cout << "Command not found, please try again." << endl;
-                Lines();
+                Pause();
+                ClearScreen();
             }
         }
     }
@@ -1254,6 +1696,7 @@ void turnObject(vector<Zombie> &Zombies)
             }
 
             // Zombie's move
+            // initialize every char with something, in case char checking later of the direction is out of range of board
             char moveUp = 'm';
             char moveDown = 'm';
             char moveLeft = 'm';
@@ -1384,7 +1827,7 @@ first:
     Lines();
     cout << "1. Change board size"
          << "\n"
-         << "2. Number of zombies: " << init_numZombie
+         << "2. Number of zombies: " << initialNumberOfZombies
          << "\n"
          << "3. Back" << endl;
 
@@ -1431,7 +1874,7 @@ first:
                 cout << "Invalid input: input is not an integer / number entered is not in range.\n";
             }
             CleanInput();
-            init_numZombie = updateZombie;
+            initialNumberOfZombies = updateZombie;
             ClearScreen();
             BoardSettings();
             break;
