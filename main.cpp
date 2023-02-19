@@ -1341,7 +1341,7 @@ void turnAlien(vector<Zombie> &Zombies)
                     }
                 }
 
-                bool file_overwrite = false;
+                bool file_overwrite = true;
                 if (file_exists)
                 {
                     string overwrite;
@@ -1353,11 +1353,11 @@ void turnAlien(vector<Zombie> &Zombies)
                         cin >> overwrite;
                         if (overwrite == "1")
                         {
-                            file_overwrite = true;
                             break;
                         }
                         else if (overwrite == "2")
                         {
+                            file_overwrite = false;
                             break;
                         }
                         else
@@ -1473,7 +1473,7 @@ void turnAlien(vector<Zombie> &Zombies)
             // load command
             else if (main_command == "load")
             {
-                if (saveongoinggame)
+                if (saveongoinggame == true)
                 {
                     string saveconfirmation;
                     cout << "Save ongoing game? (number)" << endl;
@@ -1484,7 +1484,6 @@ void turnAlien(vector<Zombie> &Zombies)
                         cin >> saveconfirmation;
                         if (saveconfirmation == "1")
                         {
-                            saveongoinggame = true;
                             goto saveongoing;
                         }
                         else if (saveconfirmation == "2")
