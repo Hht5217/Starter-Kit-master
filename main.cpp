@@ -75,10 +75,16 @@ public:
     void updatelifeAlien(int value_life, char health_damage);
     void updateattackAlien(char add_reset);
 };
-
+// ####################### some functions ######################
 void Lines()
 {
     cout << string(50, '#') << endl;
+}
+
+void CleanInput()
+{
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 // ####################### Board class functions #######################
@@ -480,6 +486,10 @@ int setRange()
 {
     int lower_range = 1, upper_range = 4;
     int range = (rand() % (upper_range - lower_range + 1)) + lower_range;
+    if (game.getBoardX() > 9 && game.getBoardY() > 9)
+    {
+        range += 3;
+    }
     return range;
 }
 
@@ -494,30 +504,30 @@ void MenuDisplay()
          << "2. Board Settings"
          << "\n"
          << "3. Exit" << endl;
-    char menu;
+    string menu;
     while (true)
     {
         cout << "Please input a command(number): ";
         cin >> menu;
-        if (menu == '1' || menu == '2' || menu == '3')
+        if (menu == "1")
         {
-            if (menu == '1')
-            {
-                ClearScreen();
-                PlayConfirmation();
-                break;
-            }
-            else if (menu == '2')
-            {
-                ClearScreen();
-                BoardSettings();
-                break;
-            }
-            else if (menu == '3')
-            {
-                cout << "Good Bye!" << endl;
-                break;
-            }
+            CleanInput();
+            ClearScreen();
+            PlayConfirmation();
+            break;
+        }
+        else if (menu == "2")
+        {
+            CleanInput();
+            ClearScreen();
+            BoardSettings();
+            break;
+        }
+        else if (menu == "3")
+        {
+            CleanInput();
+            cout << "Good Bye!" << endl;
+            break;
         }
         else
         {
@@ -536,41 +546,41 @@ void PlayConfirmation()
          << "2. View or change board settings"
          << "\n"
          << "3. Back" << endl;
-    char playmenu;
+    string playmenu;
     while (true)
     {
         cout << "Please input a command(number): ";
         cin >> playmenu;
-        if (playmenu == '1' || playmenu == '2' || playmenu == '3')
+        if (playmenu == "1")
         {
-            if (playmenu == '1')
+            CleanInput();
+            ClearScreen();
+            game.init(game.getBoardX(), game.getBoardY());
+            game.initObjects(init_numZombie);
+            vector<Zombie> Zombies;
+            for (int i = 0; i < init_numZombie; ++i)
             {
-                ClearScreen();
-                game.init(game.getBoardX(), game.getBoardY());
-                game.initObjects(init_numZombie);
-                vector<Zombie> Zombies;
-                for (int i = 0; i < init_numZombie; ++i)
-                {
-                    int life = setLife('z');
-                    int attack = setAttack();
-                    int range = setRange();
-                    Zombie npc(life, attack, range);
-                    Zombies.push_back(npc);
-                }
-                turnAlien(Zombies);
-                break;
+                int life = setLife('z');
+                int attack = setAttack();
+                int range = setRange();
+                Zombie npc(life, attack, range);
+                Zombies.push_back(npc);
             }
-            else if (playmenu == '2')
-            {
-                ClearScreen();
-                BoardSettings();
-                break;
-            }
-            else if (playmenu == '3')
-            {
-                MenuDisplay();
-                break;
-            }
+            turnAlien(Zombies);
+            break;
+        }
+        else if (playmenu == "2")
+        {
+            CleanInput();
+            ClearScreen();
+            BoardSettings();
+            break;
+        }
+        else if (playmenu == "3")
+        {
+            CleanInput();
+            MenuDisplay();
+            break;
         }
         else
         {
@@ -593,12 +603,12 @@ void turnAlien(vector<Zombie> &Zombies)
     }
     else
     {
-        char command_arrow;
+        string command_arrow;
         char move_arrow;
         while (true)
         {
             game.ShowBoard(Zombies);
-            cout << "Please input a command: " << endl;
+            cout << "Please input a command(word): " << endl;
             cout << "1. up"
                  << "\n"
                  << "2. down"
@@ -607,8 +617,21 @@ void turnAlien(vector<Zombie> &Zombies)
                  << "\n"
                  << "4. right"
                  << "\n"
-                 << "5. exit" << endl;
-            cin >> command_arrow;
+                 << "5. quit"
+                 << "\n"
+                 << "(not implemented yet: help, save, load)\n=>";
+
+            getline(cin, command_arrow);
+            size_t pos = command_arrow.find(' ');
+            if (pos != string::npos)
+            {
+                command_arrow = command_arrow.substr(0, pos);
+            }
+            for (int l = 0; l < size(command_arrow); ++l)
+            {
+                command_arrow[l] = tolower(command_arrow[l]);
+            }
+
         turn:
             const vector<int> &currentPos = game.posAlien();
             int posX = currentPos[0];
@@ -619,8 +642,9 @@ void turnAlien(vector<Zombie> &Zombies)
             int pod_attack;
 
             // alien move up
-            if (command_arrow == '1')
+            if (command_arrow == "up")
             {
+                cin.clear();
                 move_arrow = '^';
                 if (posY == 0)
                 {
@@ -717,7 +741,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '2';
+                        command_arrow = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -728,7 +752,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '3';
+                        command_arrow = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left" << endl;
                         Pause();
                         goto turn;
@@ -739,7 +763,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '4';
+                        command_arrow = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right" << endl;
                         Pause();
                         goto turn;
@@ -756,8 +780,9 @@ void turnAlien(vector<Zombie> &Zombies)
             }
 
             // alien move down
-            else if (command_arrow == '2')
+            else if (command_arrow == "down")
             {
+                cin.clear();
                 move_arrow = 'v';
                 if (posY == (game.getBoardY() - 1))
                 {
@@ -854,7 +879,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '1';
+                        command_arrow = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -865,7 +890,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '3';
+                        command_arrow = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left" << endl;
                         Pause();
                         goto turn;
@@ -876,7 +901,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '4';
+                        command_arrow = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right" << endl;
                         Pause();
                         goto turn;
@@ -893,8 +918,9 @@ void turnAlien(vector<Zombie> &Zombies)
                 }
             }
             // alien move left
-            else if (command_arrow == '3')
+            else if (command_arrow == "left")
             {
+                cin.clear();
                 move_arrow = '<';
                 if (posX == 0)
                 {
@@ -991,7 +1017,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '1';
+                        command_arrow = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -1002,7 +1028,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '2';
+                        command_arrow = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -1013,14 +1039,13 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '4';
+                        command_arrow = "right";
                         cout << "Alien found arrow object, attack +20, changed to moving right." << endl;
                         Pause();
                         goto turn;
                     }
                     else
                     {
-
                         game.moveObject(posY, posX, move_arrow, 'A');
                         ClearScreen();
                         game.ShowBoard(Zombies);
@@ -1030,8 +1055,9 @@ void turnAlien(vector<Zombie> &Zombies)
                 }
             }
             // alien move right
-            else if (command_arrow == '4')
+            else if (command_arrow == "right")
             {
+                cin.clear();
                 move_arrow = '>';
                 if (posX == (game.getBoardX() - 1))
                 {
@@ -1075,7 +1101,6 @@ void turnAlien(vector<Zombie> &Zombies)
                     else if (objectCheck == 'r')
                     {
                         ClearScreen();
-
                         game.resetTrail();
                         game.hitRock(posY, posX, move_arrow);
                         game.ShowBoard(Zombies);
@@ -1129,7 +1154,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '1';
+                        command_arrow = "up";
                         cout << "Alien found arrow object, attack +20, changed to moving upwards." << endl;
                         Pause();
                         goto turn;
@@ -1140,7 +1165,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '2';
+                        command_arrow = "down";
                         cout << "Alien found arrow object, attack +20, changed to moving downwards." << endl;
                         Pause();
                         goto turn;
@@ -1151,7 +1176,7 @@ void turnAlien(vector<Zombie> &Zombies)
                         game.moveObject(posY, posX, move_arrow, 'A');
                         game.updateattackAlien('a');
                         game.ShowBoard(Zombies);
-                        command_arrow = '3';
+                        command_arrow = "left";
                         cout << "Alien found arrow object, attack +20, changed to moving left." << endl;
                         Pause();
                         goto turn;
@@ -1167,14 +1192,16 @@ void turnAlien(vector<Zombie> &Zombies)
                     }
                 }
             }
-            else if (command_arrow == '5')
+            else if (command_arrow == "quit")
             {
+                cin.clear();
                 MenuDisplay();
                 break;
             }
             else
             {
                 ClearScreen();
+                Lines();
                 cout << "Command not found, please try again." << endl;
                 Lines();
             }
@@ -1361,103 +1388,59 @@ first:
          << "\n"
          << "3. Back" << endl;
 
-    char menu2;
+    string boardmenu;
     while (true)
     {
         cout << "Please input a command(number): ";
-        cin >> menu2;
-        if (menu2 == '1' || menu2 == '2' || menu2 == '3')
+        cin >> boardmenu;
+        if (boardmenu == "1")
         {
-            char confirmation;
-            if (menu2 == '1')
+            CleanInput();
+            ClearScreen();
+            Lines();
+            cout << "Change board size: min 5 and max 15 for both dimensions." << endl;
+            Lines();
+            while (cout << "Enter row / height: " && (!(cin >> numY) || (numY % 2 == 0) || (numY < 5 || numY > 15)))
             {
-                ClearScreen();
-                Lines();
-                cout << "Changing board size" << endl;
-                Lines();
-                while (true)
-                {
-                    cout << "Enter row/height => ";
-                    cin >> numY;
-                    cout << "Enter column/width => ";
-                    cin >> numX;
-                    if (numX % 2 == 0 || numY % 2 == 0)
-                    {
-                        cout << "Rows or columns entered is not an odd number, please try again." << endl;
-                        Lines();
-                    }
-                    else
-                    {
-                        while (true)
-                        {
-                            cout << "Are you sure? y/n: ";
-                            cin >> confirmation;
-                            if (confirmation == 'y')
-                            {
-                                game.boardUpdate(numY, numX);
-                                ClearScreen();
-                                goto first;
-                            }
-                            else if (confirmation == 'n')
-                            {
-                                ClearScreen();
-                                goto first;
-                            }
-                            else
-                            {
-                                cout << "Command not found, please try again." << endl;
-                                Lines();
-                            }
-                        }
-                    }
-                }
+                CleanInput();
+                cout << "Invalid input: input is not an integer / number is not an odd number / number not in range." << endl;
             }
-            else if (menu2 == '2')
+            CleanInput();
+            while (cout << "Enter column / width: " && (!(cin >> numX) || (numX % 2 == 0) || (numX < 5 || numX > 15)))
             {
-                int updateZombie;
-                ClearScreen();
-                Lines();
-                cout << "Update number of zombies" << endl;
-                Lines();
-                while (true)
-                {
-                    cout << "Enter number of zombies(minimum 2, maximum 9): ";
-                    cin >> updateZombie;
-                    if (updateZombie < 2 || updateZombie > 9)
-                    {
-                        cout << "Number entered not in / out of range, please try again." << endl;
-                    }
-                    else
-                    {
-                        while (true)
-                        {
-                            cout << "Are you sure? y/n: ";
-                            cin >> confirmation;
-                            if (confirmation == 'y')
-                            {
-                                init_numZombie = updateZombie;
-                                ClearScreen();
-                                goto first;
-                            }
-                            else if (confirmation == 'n')
-                            {
-                                ClearScreen();
-                                goto first;
-                            }
-                            else
-                            {
-                                cout << "Command not found, please try again." << endl;
-                                Lines();
-                            }
-                        }
-                    }
-                }
+                CleanInput();
+                cout << "Invalid input: input is not an integer / number is not an odd number / number not in range." << endl;
             }
-            else if (menu2 == '3')
+            CleanInput();
+            game.boardUpdate(numY, numX);
+            ClearScreen();
+            BoardSettings();
+            break;
+        }
+        else if (boardmenu == "2")
+        {
+            CleanInput();
+            int updateZombie;
+            ClearScreen();
+            Lines();
+            cout << "Update number of zombies" << endl;
+            Lines();
+            while (cout << "Enter a number between 2 and 9: " && (!(cin >> updateZombie) || (updateZombie < 2 || updateZombie > 9)))
             {
-                MenuDisplay();
-                break;
+                CleanInput();
+                cout << "Invalid input: input is not an integer / number entered is not in range.\n";
             }
+            CleanInput();
+            init_numZombie = updateZombie;
+            ClearScreen();
+            BoardSettings();
+            break;
+        }
+        else if (boardmenu == "3")
+        {
+            CleanInput();
+            MenuDisplay();
+            break;
         }
         else
         {
